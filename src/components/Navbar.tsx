@@ -10,24 +10,21 @@ const Navbar = (): JSX.Element => {
             <MyButton
                 icon={Box}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-full"
+                onClick={() => navigate("/cards/userid")}
             />
             <MyButton
                 icon={Route}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-full"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/learning-path/pathid")}
             />
             <MyButton
                 icon={SquareDashedKanban}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-full"
+                onClick={() => navigate("/leaderboard/userid")}
             />
             <MyButton
                 icon={Swords}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-full"
-                onClick={() => navigate("/battles")}
-            />
-            <MyButton
-                icon={User}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-full mt-20"
                 onClick={() => navigate("/profile")}
             />
         </div>
