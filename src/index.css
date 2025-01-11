@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.perspective-1000 {
+    perspective: 1000px;
+}
+
+.transform-style-3d {
+    transform-style: preserve-3d;
+}
+
+.backface-hidden {
+    backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+    transform: rotateY(180deg);
+}
+
+@layer utilities {
+    .bg-background {
+        background-color: rgb(243 244 246);
+    }
+    .animation-delay-200 {
+        animation-delay: 200ms;
+    }
+    .animation-delay-400 {
+        animation-delay: 400ms;
+    }
+    .animation-delay-600 {
+        animation-delay: 600ms;
+    }
+    .animation-delay-800 {
+        animation-delay: 800ms;
+    }
+    .animation-delay-1000 {
+        animation-delay: 1000ms;
+    }
+}
+
+@keyframes pathProgress {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+.path-progress {
+    animation: pathProgress 2s ease-out forwards;
+}
+
+@keyframes nodeAppear {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.node-appear {
+    animation: nodeAppear 0.5s ease-out forwards;
+}
+
+.lesson-node.animate-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.lesson-node {
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lesson-node.animate-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.lesson-node.show-path::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -32px;
+    height: 32px;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, #93c5fd);
+    animation: pathGrow 0.5s ease-out forwards;
+}
+
+@keyframes pathGrow {
+    from {
+        transform: scaleY(0);
+    }
+    to {
+        transform: scaleY(1);
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+.path-node {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.path-node.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.path-node::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 0;
+    height: 2px;
+    background: #93c5fd;
+    transition: width 0.6s ease-out;
+}
+
+.path-node.show::after {
+    width: 100%;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
