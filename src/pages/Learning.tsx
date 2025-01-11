@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { User, X } from "lucide-react";
 import Navbar from "../components/Navbar";
 import LearningPathCard from "../components/LearningPathCard";
@@ -8,10 +8,12 @@ import LearningPathView from "./LearningPathView";
 import { useNavigate } from "react-router-dom";
 
 interface LearningPath {
-    title: string;
-    description: string;
-    progress: number;
-    isLocked: boolean;
+    _id: string;
+    name: string;
+    decks: string[];
+    createdAt: string;
+    updatedAt: string;
+    progress?: number;
 }
 
 interface Achievement {
@@ -23,30 +25,41 @@ interface Achievement {
 
 const Learning: React.FC = () => {
     const navigate = useNavigate();
+    const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
+    const [overallProgress, setOverallProgress] = useState(0);
 
-    const learningPaths: LearningPath[] = [
-        {
-            title: "Algorithm Basics",
-            description:
-                "Learn fundamental algorithms and problem-solving techniques",
-            progress: 75,
-            isLocked: false,
-        },
-        {
-            title: "Data Structures",
-            description:
-                "Master essential data structures and their implementations",
-            progress: 30,
-            isLocked: false,
-        },
-        {
-            title: "Advanced Topics",
-            description:
-                "Explore advanced algorithms and optimization techniques",
-            progress: 0,
-            isLocked: true,
-        },
-    ];
+    useEffect(() => {
+        const fetchLearningPaths = async () => {
+            try {
+                const response = await fetch(
+                    "http://localhost:3000/bigo/learning-paths"
+                );
+                const data = await response.json();
+                console.log("Data:", data);
+                // Add random progress to each path
+                const pathsWithProgress = data.map((path) => ({
+                    ...path,
+                    progress: Math.floor(Math.random() * 100),
+                }));
+
+                // Calculate overall progress (average of all paths)
+                const totalProgress = pathsWithProgress.reduce(
+                    (acc, path) => acc + path.progress!,
+                    0
+                );
+                const avgProgress = Math.floor(
+                    totalProgress / pathsWithProgress.length
+                );
+
+                setOverallProgress(avgProgress);
+                setLearningPaths(pathsWithProgress);
+            } catch (error) {
+                console.error("Error fetching learning paths:", error);
+            }
+        };
+
+        fetchLearningPaths();
+    }, []);
 
     const achievements: Achievement[] = [
         {
@@ -69,14 +82,37 @@ const Learning: React.FC = () => {
         },
     ];
 
-    const handleContinueLearning = (pathTitle: string) => {
-        navigate(`/learning-path/${encodeURIComponent(pathTitle)}`);
+    const handleContinueLearning = (pathId: string) => {
+        navigate(`/learning-path/${encodeURIComponent(pathId)}`);
     };
 
     return (
         <section className="flex flex-row h-[100vh] w-full bg-background">
             <Navbar />
             <div className="flex flex-col w-full h-[100vh] my-16 px-20">
+                {/* Overall Progress Section */}
+                <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-blue-800 mb-4">
+                        Your Overall Progress
+                    </h2>
+                    <div className="bg-white p-6 rounded-lg shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-gray-600">
+                                Total Completion
+                            </span>
+                            <span className="text-blue-600 font-bold">
+                                {overallProgress}%
+                            </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-3">
+                            <div
+                                className="bg-blue-600 h-3 rounded-full transition-all duration-500"
+                                style={{ width: `${overallProgress}%` }}
+                            />
+                        </div>
+                    </div>
+                </div>
+
                 <div className="flex flex-row gap-4 h-[70vh] rounded-lg">
                     {/* Learning Paths Section */}
                     <div className="w-1/2 bg-blue-200 h-full flex flex-col gap-6 p-6 rounded-lg">
@@ -84,42 +120,41 @@ const Learning: React.FC = () => {
                             Learning Paths
                         </h2>
                         <div className="grid grid-cols-1 gap-4 overflow-y-auto pr-2">
-                            {learningPaths.map((path, index) => (
+                            {learningPaths.map((path) => (
                                 <div
-                                    key={index}
+                                    key={path._id}
                                     className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
                                 >
                                     <h3 className="text-xl font-semibold text-blue-700 mb-2">
-                                        {path.title}
+                                        {path.name}
                                     </h3>
-                                    <p className="text-gray-600 mb-4">
-                                        {path.description}
-                                    </p>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-gray-600">
+                                            Progress
+                                        </span>
+                                        <span className="text-blue-600 font-bold">
+                                            {path.progress}%
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                                        <div
+                                            className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                                            style={{
+                                                width: `${path.progress}%`,
+                                            }}
+                                        />
+                                    </div>
                                     <div className="flex items-center justify-between">
-                                        <div className="w-2/3 bg-gray-200 rounded-full h-2">
-                                            <div
-                                                className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                                                style={{
-                                                    width: `${path.progress}%`,
-                                                }}
-                                            />
-                                        </div>
+                                        <span className="text-gray-600">
+                                            {path.decks.length} decks available
+                                        </span>
                                         <button
                                             onClick={() =>
-                                                handleContinueLearning(
-                                                    path.title
-                                                )
+                                                handleContinueLearning(path._id)
                                             }
-                                            disabled={path.isLocked}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                                path.isLocked
-                                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                                    : "bg-blue-600 text-white hover:bg-blue-700"
-                                            }`}
+                                            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
                                         >
-                                            {path.isLocked
-                                                ? "Locked"
-                                                : "Continue Learning"}
+                                            Continue Learning
                                         </button>
                                     </div>
                                 </div>

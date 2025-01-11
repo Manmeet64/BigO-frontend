@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { X, Star, Trophy, CheckCircle2, Lock, Target } from "lucide-react";
 
@@ -11,9 +11,20 @@ interface LessonNode {
     challenges: number;
 }
 
+interface LearningPathData {
+    _id: string;
+    name: string;
+    decks: Deck[];
+    createdAt: string;
+    updatedAt: string;
+}
+
 const LearningPathView: React.FC = () => {
     const { pathId } = useParams();
     const navigate = useNavigate();
+    const [decks, setDecks] = useState<Deck[]>([]);
+    const [pathName, setPathName] = useState<string>("");
+    const [isLoading, setIsLoading] = useState(true);
 
     const lessons: LessonNode[] = [
         {
@@ -59,6 +70,28 @@ const LearningPathView: React.FC = () => {
     ];
 
     useEffect(() => {
+        const fetchLearningPath = async () => {
+            try {
+                // Fetch learning path details
+                const pathResponse = await fetch(
+                    `http://localhost:3000/bigo/learning-path/${pathId}`
+                );
+                const pathData: LearningPathData = await pathResponse.json();
+                setPathName(pathData.name);
+                setDecks(pathData.decks);
+                setIsLoading(false);
+            } catch (error) {
+                console.error("Error fetching learning path:", error);
+                setIsLoading(false);
+            }
+        };
+
+        if (pathId) {
+            fetchLearningPath();
+        }
+    }, [pathId]);
+
+    useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -78,17 +111,17 @@ const LearningPathView: React.FC = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
             {/* Header */}
-            <div className="sticky top-0 z-50 bg-gradient-to-b from-background to-transparent pt-8 pb-4 backdrop-blur-sm">
+            <div className="sticky top-0 z-50 bg-gradient-to-b from-blue-50 to-transparent pt-8 pb-4 backdrop-blur-sm">
                 <button
-                    onClick={() => navigate("/learning")}
+                    onClick={() => navigate("/")}
                     className="fixed top-8 right-8 p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
                 >
                     <X className="w-6 h-6 text-gray-500 group-hover:text-blue-500" />
                 </button>
-                <h1 className="text-5xl font-bold text-gray-800 text-center mb-3 animate-fade-in">
-                    {decodeURIComponent(pathId || "")}
+                <h1 className="text-5xl font-bold text-blue-800 text-center mb-3 animate-fade-in">
+                    {pathName}
                 </h1>
                 <p className="text-center text-gray-600 text-lg animate-fade-in-delayed">
                     Your adventure awaits...
@@ -130,7 +163,7 @@ const LearningPathView: React.FC = () => {
             {/* Learning Path */}
             <div className="max-w-6xl mx-auto px-4 relative">
                 {/* Journey Line */}
-                <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-300 via-blue-300 to-blue-200 transform -translate-x-1/2 rounded-full glow-line" />
+                <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-200 via-blue-300 to-blue-200 transform -translate-x-1/2 rounded-full glow-line" />
 
                 {lessons.map((lesson, index) => (
                     <div
@@ -148,8 +181,8 @@ const LearningPathView: React.FC = () => {
                                     absolute top-1/2 w-24 h-1 
                                     bg-gradient-to-r ${
                                         index % 2 === 0
-                                            ? "from-blue-300 to-blue-300"
-                                            : "from-blue-300 to-blue-300"
+                                            ? "from-blue-200 to-blue-300"
+                                            : "from-blue-300 to-blue-200"
                                     }
                                     ${
                                         index % 2 === 0
@@ -189,7 +222,7 @@ const LearningPathView: React.FC = () => {
                                     <CheckCircle2 className="w-10 h-10 text-green-500 group-hover:scale-110 transition-transform duration-300" />
                                 )}
                                 {lesson.status === "current" && (
-                                    <Target className="w-10 h-10 text-blue-300 group-hover:scale-110 transition-transform duration-300 animate-spin-slow" />
+                                    <Target className="w-10 h-10 text-blue-500 group-hover:scale-110 transition-transform duration-300 animate-spin-slow" />
                                 )}
                                 {lesson.status === "locked" && (
                                     <Lock className="w-10 h-10 text-gray-400 group-hover:scale-110 transition-transform duration-300" />
@@ -210,7 +243,7 @@ const LearningPathView: React.FC = () => {
                                     group
                                 `}
                             >
-                                <h3 className="text-2xl font-bold text-gray-800 mb-3 group-hover:text-blue-300 transition-colors">
+                                <h3 className="text-2xl font-bold text-blue-800 mb-3 group-hover:text-blue-600 transition-colors">
                                     {lesson.title}
                                 </h3>
                                 <p className="text-gray-600 mb-6 text-lg">
@@ -218,11 +251,11 @@ const LearningPathView: React.FC = () => {
                                 </p>
 
                                 <div className="flex items-center gap-6 mb-6">
-                                    <span className="flex items-center gap-2 text-blue-300 bg-blue-50 px-4 py-2 rounded-full">
+                                    <span className="flex items-center gap-2 text-yellow-500 bg-yellow-50 px-4 py-2 rounded-full">
                                         <Star className="w-5 h-5" /> {lesson.xp}{" "}
                                         XP
                                     </span>
-                                    <span className="flex items-center gap-2 text-blue-300 bg-blue-50 px-4 py-2 rounded-full">
+                                    <span className="flex items-center gap-2 text-purple-500 bg-purple-50 px-4 py-2 rounded-full">
                                         <Trophy className="w-5 h-5" />{" "}
                                         {lesson.challenges} Challenges
                                     </span>
@@ -235,8 +268,8 @@ const LearningPathView: React.FC = () => {
                                             transition-all duration-300 transform 
                                             ${
                                                 lesson.status === "completed"
-                                                    ? "bg-gradient-to-r from-blue-300 to-blue-200 hover:from-blue-400 hover:to-blue-300"
-                                                    : "bg-gradient-to-r from-blue-300 to-blue-200 hover:from-blue-400 hover:to-blue-300"
+                                                    ? "bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600"
+                                                    : "bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600"
                                             }
                                             hover:scale-105 hover:shadow-lg
                                             group-hover:animate-pulse-subtle

@@ -1,11 +1,19 @@
 import Navbar from "../components/Navbar.js";
 import MyTopBar from "../components/MyTopbar.js";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { Bug } from "lucide-react";
+
+interface Friend {
+    username: string;
+    avatar: string; // Assuming each friend object contains `username` and `avatar`
+}
 
 interface ProfileData {
-    name: string;
+    username: string;
     email: string;
+    friends: Friend[]; // Changed to array of Friend objects
     // Add other fields that come from your API
 }
 
@@ -13,6 +21,8 @@ const Profile = (): JSX.Element => {
     const userId = JSON.parse(localStorage.getItem("user") || "{}")?.id;
     const [isLoading, setIsLoading] = useState(true);
     const [profileData, setProfileData] = useState<ProfileData | null>(null);
+    const [badges, setBadges] = useState<string[]>(["Bug Finder"]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUserProfile = async () => {
@@ -52,18 +62,23 @@ const Profile = (): JSX.Element => {
         );
     }
 
+    const handleContinueLearning = (pathTitle: string) => {
+        navigate(`/learning-path/${encodeURIComponent(pathTitle)}`);
+    };
+
     return (
         <section className="flex flex-row h-[100vh] w-full bg-background">
             <Navbar />
             <div className="flex flex-col w-full h-[100vh] my-16 px-20">
                 <MyTopBar />
+
                 <div className="flex flex-row gap-4 my-8 h-[70vh] rounded-lg">
                     {/* Left Side - Image and Avatars */}
                     <div className="w-1/4 bg-blue-300 h-[100%] flex flex-col rounded-lg overflow-hidden">
                         <div className="h-1/3 bg-blue-400 py-12 flex justify-center items-center">
                             <div className="w-40 h-40 rounded-full border-4 border-blue-500">
                                 <img
-                                    src="https://github.com/shadcn.png" // You can replace this with `user.avatar` if the user has an avatar
+                                    src="https://github.com/shadcn.png"
                                     alt="User Avatar"
                                     className="w-full h-full rounded-full object-cover"
                                 />
@@ -86,7 +101,7 @@ const Profile = (): JSX.Element => {
                         {/* Username */}
                         <div className="w-[250px] h-[40px] rounded-full bg-blue-300 flex items-center justify-center">
                             <span className="text-white">
-                                {profileData.name}
+                                {profileData.username}
                             </span>
                         </div>
 
@@ -97,9 +112,36 @@ const Profile = (): JSX.Element => {
                             </span>
                         </div>
 
-                        {/* Add friends section */}
-                        <div className="w-full h-40 bg-gray-200 rounded-lg p-4">
-                            <h3>Add friends</h3>
+                        {/* Friends section */}
+                        <div className="w-full h-48 bg-gray-200 rounded-lg p-4 flex flex-col justify-between">
+                            <h3>Friends</h3>
+                            <div className="flex flex-wrap gap-4">
+                                {profileData.friends.length === 0 ? (
+                                    <p className="text-sm text-gray-600">
+                                        No friends yet.
+                                    </p>
+                                ) : (
+                                    profileData.friends.map((friend, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="flex flex-col items-center bg-blue-200 p-4 rounded-lg w-24 h-32"
+                                        >
+                                            {/* Display friend's avatar and username */}
+                                            <img
+                                                src={
+                                                    friend.avatar ||
+                                                    "https://github.com/shadcn.png"
+                                                }
+                                                alt={`${friend.username}'s avatar`}
+                                                className="w-20 h-20 rounded-full object-cover mb-2"
+                                            />
+                                            <span className="text-sm">
+                                                {friend.username}
+                                            </span>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -109,9 +151,25 @@ const Profile = (): JSX.Element => {
                             <h1 className="text-2xl font-bold mb-2 text-blue-600">
                                 Badges
                             </h1>
-                            <p className="text-lg text-gray-600 bg-slate-50 p-4 rounded-lg shadow-md">
-                                Start learning to earn badges
-                            </p>
+                            {badges.length <= 0 ? (
+                                <p className="text-lg text-gray-600 bg-slate-50 p-4 rounded-lg shadow-md">
+                                    Start learning to earn badges
+                                </p>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-4">
+                                    {badges.map((badge, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="flex flex-col gap-2 items-center bg-blue-200 p-2 rounded-full"
+                                        >
+                                            <Bug size={16} />
+                                            <span className="text-sm">
+                                                {badge}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Scrollable Container with Learning Paths */}
@@ -129,6 +187,7 @@ const Profile = (): JSX.Element => {
                                 <div
                                     key={idx}
                                     className="p-3 bg-blue-200 rounded-md mb-2 cursor-pointer hover:bg-blue-300 transition-colors"
+                                    onClick={() => handleContinueLearning(path)}
                                 >
                                     {path}
                                 </div>
