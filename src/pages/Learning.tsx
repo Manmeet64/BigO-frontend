@@ -1,11 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { User, X } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import {
+    User,
+    X,
+    Bug,
+    Trophy,
+    Star,
+    Target,
+    LoaderPinwheel,
+} from "lucide-react";
 import Navbar from "../components/Navbar";
 import LearningPathCard from "../components/LearningPathCard";
 import AchievementBadge from "../components/AchievementBadge";
 import LearningPath from "../components/LearningPath";
 import LearningPathView from "./LearningPathView";
 import { useNavigate } from "react-router-dom";
+import MyTopBar from "../components/MyTopbar";
+import { gsap } from "gsap";
 
 interface LearningPath {
     _id: string;
@@ -27,6 +37,32 @@ const Learning: React.FC = () => {
     const navigate = useNavigate();
     const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
     const [overallProgress, setOverallProgress] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
+    const [achievements, setAchievements] = useState([
+        { name: "Bug Finder", icon: Bug },
+        { name: "Quick Learner", icon: Trophy },
+        { name: "Problem Solver", icon: Star },
+        { name: "Goal Achiever", icon: Target },
+    ]);
+
+    const loaderRef = useRef(null);
+
+    useEffect(() => {
+        if (loaderRef.current) {
+            gsap.fromTo(
+                loaderRef.current,
+                { x: 0 },
+                {
+                    x: "400%",
+                    duration: 4,
+                    ease: "power2.inOut",
+                    yoyo: true,
+                    repeat: 10,
+                    repeatDelay: 0.5,
+                }
+            );
+        }
+    }, []);
 
     useEffect(() => {
         const fetchLearningPaths = async () => {
@@ -34,15 +70,18 @@ const Learning: React.FC = () => {
                 const response = await fetch(
                     "http://localhost:3000/bigo/learning-paths"
                 );
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
                 const data = await response.json();
-                console.log("Data:", data);
+
                 // Add random progress to each path
-                const pathsWithProgress = data.map((path) => ({
+                const pathsWithProgress = data.map((path: LearningPath) => ({
                     ...path,
                     progress: Math.floor(Math.random() * 100),
                 }));
 
-                // Calculate overall progress (average of all paths)
+                // Calculate overall progress
                 const totalProgress = pathsWithProgress.reduce(
                     (acc, path) => acc + path.progress!,
                     0
@@ -53,185 +92,171 @@ const Learning: React.FC = () => {
 
                 setOverallProgress(avgProgress);
                 setLearningPaths(pathsWithProgress);
+                setIsLoading(false);
             } catch (error) {
                 console.error("Error fetching learning paths:", error);
+                setIsLoading(false);
             }
         };
 
         fetchLearningPaths();
     }, []);
 
-    const achievements: Achievement[] = [
-        {
-            name: "First Steps",
-            icon: "/icons/steps.svg",
-            isUnlocked: true,
-            description: "Complete your first algorithm challenge",
-        },
-        {
-            name: "Quick Learner",
-            icon: "/icons/brain.svg",
-            isUnlocked: true,
-            description: "Complete 5 challenges in one day",
-        },
-        {
-            name: "Problem Solver",
-            icon: "/icons/puzzle.svg",
-            isUnlocked: false,
-            description: "Solve a complex algorithm challenge",
-        },
-    ];
-
     const handleContinueLearning = (pathId: string) => {
-        navigate(`/learning-path/${encodeURIComponent(pathId)}`);
+        navigate(`/learning-path/${pathId}`);
     };
 
-    return (
-        <section className="flex flex-row h-[100vh] w-full bg-background">
-            <Navbar />
-            <div className="flex flex-col w-full h-[100vh] my-16 px-20">
-                {/* Overall Progress Section */}
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-blue-800 mb-4">
-                        Your Overall Progress
-                    </h2>
-                    <div className="bg-white p-6 rounded-lg shadow-sm">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-600">
-                                Total Completion
-                            </span>
-                            <span className="text-blue-600 font-bold">
-                                {overallProgress}%
-                            </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-3">
-                            <div
-                                className="bg-blue-600 h-3 rounded-full transition-all duration-500"
-                                style={{ width: `${overallProgress}%` }}
-                            />
-                        </div>
-                    </div>
+    if (isLoading) {
+        return (
+            <section className="flex flex-row h-screen w-full">
+                <Navbar />
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
                 </div>
+            </section>
+        );
+    }
 
-                <div className="flex flex-row gap-4 h-[70vh] rounded-lg">
-                    {/* Learning Paths Section */}
-                    <div className="w-1/2 bg-blue-200 h-full flex flex-col gap-6 p-6 rounded-lg">
-                        <h2 className="text-2xl font-bold text-blue-800">
-                            Learning Paths
-                        </h2>
-                        <div className="grid grid-cols-1 gap-4 overflow-y-auto pr-2">
-                            {learningPaths.map((path) => (
-                                <div
-                                    key={path._id}
-                                    className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
-                                >
-                                    <h3 className="text-xl font-semibold text-blue-700 mb-2">
-                                        {path.name}
-                                    </h3>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-gray-600">
-                                            Progress
-                                        </span>
-                                        <span className="text-blue-600 font-bold">
-                                            {path.progress}%
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                                        <div
-                                            className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                                            style={{
-                                                width: `${path.progress}%`,
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-600">
-                                            {path.decks.length} decks available
-                                        </span>
-                                        <button
-                                            onClick={() =>
-                                                handleContinueLearning(path._id)
-                                            }
-                                            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
-                                        >
-                                            Continue Learning
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+    return (
+        <section className="flex flex-row h-screen w-full bg-gradient-to-br from-blue-50 via-white to-blue-50">
+            <Navbar />
+            <div className="flex-1 overflow-y-auto">
+                <div className="px-12 py-8 max-w-7xl mx-auto">
+                    {/* Header */}
+                    <div className="mb-8 pt-4">
+                        <h1 className="text-4xl font-bold text-gray-800 mb-3 animate-fade-in">
+                            Paths
+                        </h1>
+                        <p className="text-gray-600 text-lg">
+                            Your learning adventure begins here
+                        </p>
                     </div>
 
-                    {/* Achievements Section */}
-                    <div className="w-1/4 bg-blue-300 h-full flex flex-col rounded-lg overflow-hidden">
-                        <div className="h-1/3 bg-blue-400 py-8 flex justify-center items-center">
-                            <div className="w-32 h-32 rounded-full border-4 border-blue-500 bg-white flex items-center justify-center">
-                                <User className="w-16 h-16 text-blue-600" />
+                    {/* Progress and Achievements Row */}
+                    <div className="flex gap-8 mb-12">
+                        {/* Left Side - Overall Progress */}
+                        <div className="flex-1 bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                                    Overall Progress
+                                </h2>
+                                <span className="text-3xl font-bold text-blue-600">
+                                    {overallProgress}%
+                                </span>
+                            </div>
+                            <div className="w-full h-4 bg-gray-100 rounded-full overflow-hidden p-0.5">
+                                <div
+                                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full
+                                             transition-all duration-1000 ease-out relative group"
+                                    style={{ width: `${overallProgress}%` }}
+                                >
+                                    <div
+                                        className="absolute inset-0 bg-white opacity-0 
+                                                  group-hover:opacity-20 transition-opacity"
+                                    />
+                                </div>
+                            </div>
+                            <div className="relative h-[100px] mt-12 w-[500px] flex items-center overflow-hidden">
+                                <div
+                                    id="loaderPinwheelWrapper"
+                                    className="absolute items-end justify-start"
+                                    ref={loaderRef}
+                                >
+                                    <LoaderPinwheel size={72} />
+                                </div>
                             </div>
                         </div>
-                        <div className="h-2/3 p-6">
-                            <h2 className="text-xl font-bold text-blue-800 mb-4">
+
+                        {/* Right Side - Achievements */}
+                        <div className="flex-1 bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <Trophy className="w-5 h-5 text-blue-500" />
                                 Achievements
                             </h2>
-                            <div className="grid grid-cols-1 gap-4 overflow-y-auto pr-2">
+                            <div className="grid grid-cols-2 gap-4">
                                 {achievements.map((achievement, index) => (
-                                    <AchievementBadge
+                                    <div
                                         key={index}
-                                        {...achievement}
-                                    />
+                                        className="group flex flex-col items-center bg-blue-50 p-3 rounded-xl
+                                                 hover:bg-blue-100 transition-all duration-300
+                                                 transform hover:-translate-y-1 hover:shadow-md"
+                                    >
+                                        <achievement.icon
+                                            className="w-8 h-8 text-blue-600 mb-2 
+                                                                   group-hover:scale-110 transition-transform"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700 text-center">
+                                            {achievement.name}
+                                        </span>
+                                    </div>
                                 ))}
                             </div>
                         </div>
                     </div>
 
-                    {/* Stats Section */}
-                    <div className="w-1/4 h-full flex flex-col justify-between bg-blue-100 rounded-lg p-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-blue-800 mb-4">
-                                Statistics
-                            </h2>
-                            <div className="space-y-4">
-                                <div className="bg-white p-4 rounded-lg shadow-sm">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">
-                                            Daily Streak
-                                        </span>
-                                        <span className="text-orange-500 font-bold">
-                                            🔥 7 days
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="bg-white p-4 rounded-lg shadow-sm">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">
-                                            XP Points
-                                        </span>
-                                        <span className="text-green-500 font-bold">
-                                            ⭐ 1250
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="bg-white p-4 rounded-lg shadow-sm">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">
-                                            Completed
-                                        </span>
-                                        <span className="text-blue-600 font-bold">
-                                            12/20
-                                        </span>
+                    {/* Learning Paths Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {learningPaths.map((path, index) => (
+                            <div
+                                key={path._id}
+                                className="animate-fade-in-up"
+                                style={{ animationDelay: `${index * 150}ms` }}
+                            >
+                                <div
+                                    className="bg-white rounded-2xl p-6 border border-gray-100 
+                                              group hover:shadow-lg transition-all duration-300 
+                                              transform hover:-translate-y-2 h-full"
+                                >
+                                    <div className="flex flex-col h-full">
+                                        <h3
+                                            className="text-xl font-bold text-gray-800 mb-3 
+                                                     group-hover:text-blue-600 transition-colors"
+                                        >
+                                            {path.name}
+                                        </h3>
+
+                                        <p className="text-gray-500 text-sm flex items-center gap-2 mb-6">
+                                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+                                            {path.decks.length} decks available
+                                        </p>
+
+                                        <div className="flex-grow">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-sm text-gray-600">
+                                                    Progress
+                                                </span>
+                                                <span className="text-sm font-medium text-blue-600">
+                                                    {path.progress}%
+                                                </span>
+                                            </div>
+                                            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-6">
+                                                <div
+                                                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 
+                                                             rounded-full transition-all duration-500"
+                                                    style={{
+                                                        width: `${path.progress}%`,
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            onClick={() =>
+                                                handleContinueLearning(path._id)
+                                            }
+                                            className="w-full bg-blue-600 text-white rounded-xl py-3 px-4
+                                                     font-medium transition-all duration-300
+                                                     hover:bg-blue-700 active:transform active:scale-95
+                                                     focus:outline-none focus:ring-2 focus:ring-blue-500 
+                                                     focus:ring-opacity-50"
+                                        >
+                                            Continue Learning
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="bg-blue-200 p-4 rounded-lg">
-                            <h3 className="font-semibold text-blue-800 mb-2">
-                                Next Challenge
-                            </h3>
-                            <p className="text-blue-600">
-                                Binary Search Implementation
-                            </p>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </div>

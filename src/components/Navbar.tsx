@@ -1,12 +1,14 @@
 // import React from "react";
 import { Box, Route, SquareDashedKanban, Swords, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logo from "./logo_bigo.jpeg";
 import MyButton from "./MyButton";
 
 const Navbar = (): JSX.Element => {
     const navigate = useNavigate();
     return (
         <div className="flex flex-col items-center gap-8 justify-center h-screen w-[120px] text-white px-4 bg-gray-800">
+            <img src={logo} alt="logo" className="w-36 h-42" />
             <MyButton
                 icon={Box}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-full"
