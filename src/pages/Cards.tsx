@@ -232,7 +232,7 @@ const DeckModal: FC<DeckModalProps> = ({
 };
 
 const Cards: FC = () => {
-    const { userId } = useParams();
+    const userId = JSON.parse(localStorage.getItem("user") || "{}")?.id;
     const [decks, setDecks] = useState<Deck[]>([]);
     const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -241,6 +241,11 @@ const Cards: FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
+        if (!userId) {
+            toast.error("No user found. Please login again.");
+            return;
+        }
+
         const fetchDecks = async () => {
             try {
                 const response = await fetch(
